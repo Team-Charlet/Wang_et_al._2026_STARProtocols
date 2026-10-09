@@ -33,7 +33,7 @@ def ProcessData(data:pd.DataFrame, SignalsNames:list[str], DictEvents:dict[str, 
     NormQuantile: bool = False, 
     returnUnprocessed: bool = False, 
     SizeSavgol: str = "10sec",
-    SavgolTime: int = 5
+    SavgolTime: int = 5 
     )-> tuple[pd.DataFrame, dict, dict, pd.DataFrame, pd.DataFrame]:
     """
     Process fluorescence signals for a dataset by applying photobleaching correction,
@@ -95,11 +95,10 @@ def ProcessData(data:pd.DataFrame, SignalsNames:list[str], DictEvents:dict[str, 
     """
     if data.isnull().values.any():
         raise ValueError("Input data contains NaN values. Please clean the data before processing.")
-    Window5ms = data.index[(data.index > 1.000)&(data.index < (1.000+0.001*SavgolTime))].shape[0] # 1 milliseconds window
-
+    Windowms = data.index[(data.index > 1.000)&(data.index < (1.000+0.001*SavgolTime))].shape[0] 
     length10sec = data.index[(data.index >1.)&(data.index < 11.)].shape[0]
     length30sec = data.index[(data.index >1.)&(data.index < 31.)].shape[0]
-    for wind in [Window5ms, length10sec, length30sec]:
+    for wind in [Windowms, length10sec, length30sec]:
         if wind % 2 == 0:
             wind += 1  # Ensure the window length is odd for Savitzky-Golay filter
     #Preprocesss signals with photobleaching correction
@@ -108,7 +107,7 @@ def ProcessData(data:pd.DataFrame, SignalsNames:list[str], DictEvents:dict[str, 
     for signal in SignalsNames:
         #print(f"Photobleaching correction for signal: {signal}")
         if Savgol:
-            data[signal] = savgol_filter(data[signal], window_length=Window5ms ,polyorder=1)
+            data[signal] = savgol_filter(data[signal], window_length=Windowms ,polyorder=1)
         dF, dFF, (Fit_type, control_arti) = photobleach_corrector(data.reset_index(), signal, "Time(s)")
         Corrected_signals[signal.replace("raw", "corrected")] = dFF["df_over_f"].values
     #Frequency over time analysis + plot
